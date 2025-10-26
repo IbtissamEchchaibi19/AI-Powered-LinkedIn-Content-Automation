@@ -36,7 +36,7 @@ graph TD
     N --> O[Google Drive: Cleanup]
 ```
 
-## 🚀 Core Capabilities
+##  Core Capabilities
 
 ### AI Research Agent
 - **Real-Time Information Gathering**: Perplexity AI for latest news and trends
@@ -84,7 +84,7 @@ graph TD
 | **Publishing** | LinkedIn API | Post distribution |
 | **Cross-Posting** | Twitter/X API | Optional multi-platform support |
 
-## 🔧 Configuration & Setup
+##  Configuration & Setup
 
 ### Environment Requirements
 
@@ -249,26 +249,7 @@ Telegram notification:
 | Airtable1 | Data Update | Marks as "Posted" with link |
 | Delete file | Cleanup | Removes temp image |
 
-## 🛡️ Security & Privacy
-
-### API Key Management
-- **Environment Variables**: Never commit credentials to git
-- **n8n Credentials**: Encrypted storage within n8n
-- **OAuth Tokens**: Secure refresh token handling
-- **Access Scoping**: Minimum required permissions
-
-### Data Privacy
-- **Temporary Storage**: Images deleted after publishing
-- **No External Storage**: Content processed in workflow only
-- **API Security**: HTTPS for all communications
-- **Audit Trail**: Complete execution history in n8n
-
-## 🐛 Troubleshooting Guide
-
-### Common Issues
-
-
-### Multi-Platform Publishing
+## Multi-Platform Publishing
 
 The workflow includes X/Twitter integration:
 - Enable X node after LinkedIn posting
@@ -276,7 +257,7 @@ The workflow includes X/Twitter integration:
 - Adjust post format for Twitter (280 char limit)
 - Consider image dimensions for Twitter cards
 
-### Content Variations
+## Content Variations
 
 Modify AI Agent prompt for different styles:
 - **Technical Deep-Dives**: Add more detail and jargon
