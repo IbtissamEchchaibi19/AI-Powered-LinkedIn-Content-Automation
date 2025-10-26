@@ -7,7 +7,7 @@
 
 > **Intelligent content automation system that researches topics, generates authentic LinkedIn posts with custom infographics, and publishes with human-in-the-loop approval via Telegram.**
 
-## 🏗️ Workflow Architecture
+## Workflow Architecture
 
 This system implements an end-to-end content pipeline combining:
 
@@ -265,7 +265,7 @@ Modify AI Agent prompt for different styles:
 - **Industry News**: Focus on analysis and commentary
 - **Educational Content**: Add more examples and frameworks
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **n8n** for powerful workflow automation
 - **Anthropic** for Claude Opus 4 language model
