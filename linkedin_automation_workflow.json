@@ -1,0 +1,757 @@
+{
+  "name": "LinkedIn Schedule Post Automation Template",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Your Base Name",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily Linkedin Posts",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_TABLE_ID"
+        },
+        "filterByFormula": "{status}='Waiting'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -20,
+        -660
+      ],
+      "id": "bfb2fce9-6c3d-4ffe-9652-e07268f107c1",
+      "name": "Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Your Airtable Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -660
+      ],
+      "id": "17cc8de0-08d7-4f6d-9a4e-be0a6578a02c",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=1st task:\nYou are a skilled LinkedIn post writer who creates authentic, conversational content that resonates with real humans. Your goal is to craft posts that feel genuine, start meaningful hook, and provide actual value on the specified topic.\n\nTopic:\n{{ $('Airtable').item.json.Title }}\n\nLink: \n{{ $('Airtable').item.json.Link }}\n\nContent:\n{{ $json.choices[0].message.content }}\n\nVoice & Style:\n\nWrite in a natural, conversational voice that sounds like a real person\nVary sentence structure and length to create rhythm\nUse first-person perspective and personal experiences when appropriate\nSound like someone talking to a friend over coffee, not presenting at a board meeting\nInclude occasional imperfections that make the writing feel human\n\nContent Structure:\n\nBegin with a compelling hook (question, surprising fact, mini-story, or counterintuitive statement)\nFollow with 2-3 concise paragraphs that develop your main point\nInclude a specific example, personal anecdote, or lesson learned\nEnd with a thoughtful question or call-to-action that invites responses\n\nFormatting Guidelines:\n\nNo emojis\nNo hashtags\nUse natural spacing between paragraphs for readability\nKeep paragraphs short (2 sentences max)\nOccasional one-line paragraphs for emphasis are effective\n\nContent Don'ts:\n\nAvoid corporate buzzwords and jargon (synergy, leverage, optimize, etc.)\nSkip vague platitudes and obvious statements\nDon't use complex vocabulary when simple words will do\nAvoid overly formal or academic language\nNo clickbait or sensationalism\nNever use ALL CAPS for emphasis\n\nContent Do's:\n\nShare specific insights rather than generalizations\nInclude relevant numbers or data points when appropriate\nReference real-world situations and practical applications\nExpress authentic opinions that might not appeal to everyone\nUse contractions (I'm, don't, we're) to sound conversational\nOccasionally use sentence fragments. Just like this.\n\nTechnical Requirements:\n\nDeliver as plain text only\nUse natural line breaks for readability\nKeep total length between 100-200 words\nVary post length based on topic complexity\n\nRemember that the best LinkedIn posts sound like they were written by a thoughtful professional sharing genuine insights—not someone trying to sound impressive or game the algorithm.\n\n\n2nd task:\nWrite a prompt to generate an infographic image that I can use on an image generation llm model.\n\nContent to write prompt on:\n{{ $('Perplexity Search').item.json.choices[0].message.content }}\n\nImage details:\nInfographic must clearly explain the difference\nIt should have every information needed\nIt must be filled with text and information\nIt should have tiny cute graphics for each explanation\n\nContent:\nExplain each concept with real time example\nInclude all major examples\nExplain concepts in detail\n\nStyle:\nUse blue color theme with gradient from top to bottom\nUse blue color pallet with white and black\nUse Bold color for title\nWork on light white background\nImage must look fresh and attractive\n\nDo's\nMake sure the text are right and correct",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        640,
+        -660
+      ],
+      "id": "e6e294ad-9420-414e-abda-336ff231d011",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $('AI Agent').item.json.output.image_generation_prompt }}\n\n\nAlways make sure to check the spelling of the generated text in the image"
+            },
+            {
+              "name": "size",
+              "value": "1024x1536"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1236,
+        -660
+      ],
+      "id": "3d71ffa7-a547-427d-a041-5c8b35f04b99",
+      "name": "HTTP Request",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "Your OpenAI Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1456,
+        -660
+      ],
+      "id": "266dab12-af07-446c-9e23-78e4118d554d",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "message": "=Is this post looks good ??\n\n{{ $json.output.linkedin_post }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1016,
+        -660
+      ],
+      "id": "4ffb4961-4d80-4051-b6fd-9043c9c9b7df",
+      "name": "Telegram2",
+      "webhookId": "WEBHOOK_WILL_BE_GENERATED",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Your Telegram Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 11,19 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -660
+      ],
+      "id": "eedb56fc-3ceb-4c69-90c6-acd75d784911",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "message": "=Check the image:\n\n[View File]({{ $json.webViewLink }})",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1900,
+        -660
+      ],
+      "id": "ed66d417-bf9b-4cdc-a4e2-8d18ceefb0d8",
+      "name": "Telegram1",
+      "webhookId": "WEBHOOK_WILL_BE_GENERATED",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Your Telegram Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7c305460-a6db-43a9-b956-a23caf442eae",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2116,
+        -660
+      ],
+      "id": "bc090842-e110-4768-9459-6fb9c52fd052",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Your Base Name",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Daily Linkedin Posts",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Limit').item.json.id }}",
+            "Status": "Posted",
+            "Linkedin Post Link": "={{ $json.urn }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Context",
+              "displayName": "Context",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Waiting",
+                  "value": "Waiting"
+                },
+                {
+                  "name": "Generated",
+                  "value": "Generated"
+                },
+                {
+                  "name": "Posted",
+                  "value": "Posted"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Linkedin Post Link",
+              "displayName": "Linkedin Post Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2780,
+        -660
+      ],
+      "id": "c0a708b4-e942-481d-9678-e70d79374652",
+      "name": "Airtable1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "YOUR_AIRTABLE_CREDENTIAL_ID",
+          "name": "Your Airtable Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ `file_${Date.now()}.jpg` }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "Your Folder Name",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/YOUR_GOOGLE_DRIVE_FOLDER_ID"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1676,
+        -660
+      ],
+      "id": "ae1d10a6-d82e-435e-a708-c53eee25bbaa",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Your Google Drive Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Google Drive').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2336,
+        -660
+      ],
+      "id": "66e72894-601b-4e24-92a1-d37132ca8647",
+      "name": "Download image",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Your Google Drive Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "person": "YOUR_LINKEDIN_PERSON_ID",
+        "text": "={{ $('AI Agent').item.json.output.linkedin_post }}",
+        "shareMediaCategory": "IMAGE",
+        "binaryPropertyName": "=data",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        -660
+      ],
+      "id": "67b3baf5-8586-4e80-a4d2-e716be95aa31",
+      "name": "Post to LinkedIn",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "YOUR_LINKEDIN_CREDENTIAL_ID",
+          "name": "Your LinkedIn Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Google Drive').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3000,
+        -660
+      ],
+      "id": "f5821ffc-0c40-49a5-bc98-6ad8e132b94b",
+      "name": "Delete file from drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Your Google Drive Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"sonar\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a helpful assistant that can provide insightful information about the topic that are going to excite human.\"\n    },\n    {\n      \"role\": \"user\",\n            \"content\": \"Find recent news about {{ $json.Title }}. Everything that a tech inthusiast should need to know. Clearly include every important topic and concepts.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        -660
+      ],
+      "id": "d189661a-9036-439f-b581-852e975bf1e1",
+      "name": "Perplexity Search",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_PERPLEXITY_CREDENTIAL_ID",
+          "name": "Your Perplexity Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"linkedin_post\": {\n\t\t\t\"type\": \"string\",\n          \"description\": \"The linkedin post we want to generate\"\n\t\t},\n\t\t\"image_generation_prompt\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"The prompt that can generate infographics for this linkedin post\"\n\t\t}\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        840,
+        -440
+      ],
+      "id": "01b55dfc-311b-47c1-b4c3-dbb6498a7600",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-opus-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Opus 4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        660,
+        -440
+      ],
+      "id": "aa997085-7b4c-42a6-a93a-94adef8c63e3",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Your Anthropic Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "additionalFields": {
+          "attachments": ""
+        }
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        140
+      ],
+      "id": "3f81d023-ba4c-4809-8070-22a5e248f6a1",
+      "name": "X",
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "YOUR_TWITTER_CREDENTIAL_ID",
+          "name": "Your Twitter/X Connection"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Airtable": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Perplexity Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Download image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable1": {
+      "main": [
+        [
+          {
+            "node": "Delete file from drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download image": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perplexity Search": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "UNIQUE_INSTANCE_ID_WILL_BE_GENERATED"
+  },
+  "id": "WORKFLOW_ID_WILL_BE_GENERATED",
+  "tags": []
+}
