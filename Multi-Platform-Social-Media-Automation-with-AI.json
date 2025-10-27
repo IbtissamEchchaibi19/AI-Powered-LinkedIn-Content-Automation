@@ -1,0 +1,400 @@
+{
+  "name": "Multi-Platform Social Media Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Your Base Name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Social Media Posts"
+        },
+        "filterByFormula": "{status}='Waiting'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "airtable-fetch",
+      "name": "Fetch Pending Posts"
+    },
+    {
+      "parameters": {
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "id": "limit-node",
+      "name": "Limit to One"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"sonar\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a helpful research assistant that provides comprehensive, up-to-date information about topics.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Find recent news and comprehensive information about {{ $json.Title }}. Include key concepts, recent developments, important facts, and context that would be valuable for social media content creation.\"\n    }\n  ]\n}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "id": "perplexity-search",
+      "name": "Research Content"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will create content for THREE different social media platforms. Each platform requires a unique approach.\n\nTOPIC: {{ $('Fetch Pending Posts').item.json.Title }}\nLINK: {{ $('Fetch Pending Posts').item.json.Link }}\nRESEARCH CONTENT: {{ $json.choices[0].message.content }}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLINKEDIN POST (Professional & Thoughtful)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nVOICE & STYLE:\n- Professional yet conversational tone\n- First-person perspective with personal insights\n- Thought leadership approach\n- Authentic and human, not corporate\n\nSTRUCTURE:\n- Compelling hook (question, surprising fact, or mini-story)\n- 2-3 concise paragraphs developing the main point\n- Specific example or lesson learned\n- Thoughtful question or call-to-action\n\nFORMATTING:\n- NO emojis\n- NO hashtags\n- Natural paragraph spacing\n- Short paragraphs (2 sentences max)\n- Occasional one-line paragraphs for emphasis\n\nLENGTH: 150-250 words\n\nDO's:\n- Share specific insights, not generalizations\n- Include relevant data points\n- Express authentic opinions\n- Use contractions (I'm, don't, we're)\n- Reference real-world applications\n\nDON'Ts:\n- Avoid buzzwords (synergy, leverage, optimize)\n- No vague platitudes\n- No complex vocabulary when simple works\n- No ALL CAPS\n- No clickbait\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nTWITTER/X POST (Punchy & Engaging)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nVOICE & STYLE:\n- Sharp, witty, and direct\n- Conversational and relatable\n- Bold statements that spark discussion\n- Casual but knowledgeable\n\nSTRUCTURE:\n- Strong opening statement or hook\n- 1-2 supporting points\n- Optional: Call-to-action or question\n\nFORMATTING:\n- Line breaks for readability (2-3 short sections)\n- 2-3 relevant emojis MAX (use sparingly)\n- 2-3 hashtags at the end\n- Can use strategic caps for EMPHASIS (one word max)\n\nLENGTH: 200-280 characters (SHORT and impactful)\n\nDO's:\n- Be opinionated and take a stance\n- Use numbers and stats\n- Make it tweetable (easy to retweet)\n- Create curiosity or controversy (tastefully)\n- Use thread format if needed (mark as [THREAD])\n\nDON'Ts:\n- No corporate speak\n- Don't be boring or generic\n- Don't overuse hashtags\n- Don't make it too formal\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nINSTAGRAM POST (Visual & Inspirational)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nVOICE & STYLE:\n- Warm, inspirational, and relatable\n- Storytelling approach\n- Visually descriptive\n- Personal and authentic\n\nSTRUCTURE:\n- Engaging opening line (hook for the caption)\n- Story or narrative (3-4 short paragraphs)\n- Key takeaway or lesson\n- Call-to-action (comment, share, save)\n\nFORMATTING:\n- Single line breaks between thoughts\n- 5-8 relevant emojis throughout (not clustered)\n- Line break after main caption before hashtags\n- 10-15 strategic hashtags at the end\n- Use symbols like • or → for lists\n\nLENGTH: 150-200 words (can be longer for storytelling)\n\nDO's:\n- Tell a micro-story or share an experience\n- Make it relatable and human\n- Encourage engagement (\"Comment if...\", \"Tag someone who...\")\n- Use descriptive language\n- Think about how it pairs with a visual\n\nDON'Ts:\n- Don't be too corporate or salesy\n- Don't cluster all emojis together\n- Don't forget the hashtags\n- Don't make paragraphs too long\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nIMAGE GENERATION PROMPT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCreate a detailed prompt for generating an infographic image suitable for ALL platforms:\n\nIMAGE REQUIREMENTS:\n- Clean, professional infographic design\n- Information-rich with multiple sections\n- Text-heavy with clear hierarchy\n- Cute minimal icons/graphics for each section\n- Mobile-friendly layout (works vertical and square)\n\nCONTENT:\n- Explain core concepts with real examples\n- Include key statistics or facts\n- Break down complex ideas visually\n- Use numbered steps or bullet points\n\nSTYLE:\n- Modern gradient: Blue (#0066FF) to Purple (#6B46FF)\n- Clean white/light gray background (#F8F9FA)\n- Bold titles in dark blue (#1A1F36)\n- High contrast for readability\n- Professional but approachable\n\nLAYOUT:\n- Portrait orientation (1080x1350 for Instagram, LinkedIn)\n- Clear title at top\n- Sections separated visually\n- White space for breathing room\n- Footer area for branding/attribution\n\nTEXT REQUIREMENTS:\n- Ensure spelling accuracy\n- Use sans-serif fonts\n- Hierarchy: Title (large) > Subtitles (medium) > Body (small)\n- Keep text concise but informative",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [660, 0],
+      "id": "content-generator",
+      "name": "Generate Platform Content"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"linkedin_post\": {\n      \"type\": \"string\",\n      \"description\": \"Professional LinkedIn post (150-250 words)\"\n    },\n    \"twitter_post\": {\n      \"type\": \"string\",\n      \"description\": \"Punchy Twitter/X post (200-280 chars)\"\n    },\n    \"instagram_post\": {\n      \"type\": \"string\",\n      \"description\": \"Engaging Instagram caption (150-200 words)\"\n    },\n    \"image_generation_prompt\": {\n      \"type\": \"string\",\n      \"description\": \"Detailed prompt for infographic generation\"\n    }\n  },\n  \"required\": [\"linkedin_post\", \"twitter_post\", \"instagram_post\", \"image_generation_prompt\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [880, 180],
+      "id": "output-parser",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [700, 180],
+      "id": "claude-model",
+      "name": "Claude AI Model"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "dall-e-3"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $('Generate Platform Content').item.json.output.image_generation_prompt }}\n\nIMPORTANT: Double-check spelling accuracy of all text in the image."
+            },
+            {
+              "name": "size",
+              "value": "1024x1792"
+            },
+            {
+              "name": "quality",
+              "value": "hd"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 0],
+      "id": "generate-image",
+      "name": "Generate Image"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].url",
+        "options": {
+          "fileName": "={{ `infographic_${Date.now()}.png` }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1500, 0],
+      "id": "convert-to-file",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "name": "={{ `infographic_${Date.now()}.png` }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1720, 0],
+      "id": "upload-to-drive",
+      "name": "Upload to Drive"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "message": "=📱 CONTENT REVIEW\n━━━━━━━━━━━━━━━━━━━━━\n\n📘 LINKEDIN:\n{{ $('Generate Platform Content').item.json.output.linkedin_post }}\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🐦 TWITTER/X:\n{{ $('Generate Platform Content').item.json.output.twitter_post }}\n\n━━━━━━━━━━━━━━━━━━━━━\n\n📸 INSTAGRAM:\n{{ $('Generate Platform Content').item.json.output.instagram_post }}\n\n━━━━━━━━━━━━━━━━━━━━━\n\n🖼️ Image: {{ $('Upload to Drive').item.json.webViewLink }}\n\nApprove to post to all platforms?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveText": "✅ Post All",
+            "rejectText": "❌ Cancel"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1940, 0],
+      "id": "approval-telegram",
+      "name": "Approval Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "approval-check",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2160, 0],
+      "id": "if-approved",
+      "name": "Check Approval"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Upload to Drive').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2380, -100],
+      "id": "download-image",
+      "name": "Download Image"
+    },
+    {
+      "parameters": {
+        "person": "YOUR_LINKEDIN_PERSON_ID",
+        "text": "={{ $('Generate Platform Content').item.json.output.linkedin_post }}",
+        "shareMediaCategory": "IMAGE",
+        "binaryPropertyName": "data",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [2600, -200],
+      "id": "post-linkedin",
+      "name": "Post to LinkedIn"
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Generate Platform Content').item.json.output.twitter_post }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [2600, 0],
+      "id": "post-twitter",
+      "name": "Post to Twitter/X"
+    },
+    {
+      "parameters": {
+        "operation": "image",
+        "caption": "={{ $('Generate Platform Content').item.json.output.instagram_post }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.instagram",
+      "typeVersion": 1,
+      "position": [2600, 200],
+      "id": "post-instagram",
+      "name": "Post to Instagram"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_TABLE_ID",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Limit to One').item.json.id }}",
+            "Status": "Posted",
+            "LinkedIn_Post_Link": "={{ $('Post to LinkedIn').item.json.urn }}",
+            "Twitter_Post_Link": "={{ $('Post to Twitter/X').item.json.id }}",
+            "Instagram_Post_Link": "={{ $('Post to Instagram').item.json.id }}",
+            "Posted_Date": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2820, 0],
+      "id": "update-airtable",
+      "name": "Update Status"
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Upload to Drive').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [3040, 0],
+      "id": "cleanup-drive",
+      "name": "Cleanup Drive"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10,15,20 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-220, 0],
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{"node": "Fetch Pending Posts", "type": "main", "index": 0}]]
+    },
+    "Fetch Pending Posts": {
+      "main": [[{"node": "Limit to One", "type": "main", "index": 0}]]
+    },
+    "Limit to One": {
+      "main": [[{"node": "Research Content", "type": "main", "index": 0}]]
+    },
+    "Research Content": {
+      "main": [[{"node": "Generate Platform Content", "type": "main", "index": 0}]]
+    },
+    "Generate Platform Content": {
+      "main": [[{"node": "Generate Image", "type": "main", "index": 0}]]
+    },
+    "Claude AI Model": {
+      "ai_languageModel": [[{"node": "Generate Platform Content", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [[{"node": "Generate Platform Content", "type": "ai_outputParser", "index": 0}]]
+    },
+    "Generate Image": {
+      "main": [[{"node": "Convert to File", "type": "main", "index": 0}]]
+    },
+    "Convert to File": {
+      "main": [[{"node": "Upload to Drive", "type": "main", "index": 0}]]
+    },
+    "Upload to Drive": {
+      "main": [[{"node": "Approval Request", "type": "main", "index": 0}]]
+    },
+    "Approval Request": {
+      "main": [[{"node": "Check Approval", "type": "main", "index": 0}]]
+    },
+    "Check Approval": {
+      "main": [[{"node": "Download Image", "type": "main", "index": 0}]]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {"node": "Post to LinkedIn", "type": "main", "index": 0},
+          {"node": "Post to Twitter/X", "type": "main", "index": 0},
+          {"node": "Post to Instagram", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Post to LinkedIn": {
+      "main": [[{"node": "Update Status", "type": "main", "index": 0}]]
+    },
+    "Post to Twitter/X": {
+      "main": [[{"node": "Update Status", "type": "main", "index": 0}]]
+    },
+    "Post to Instagram": {
+      "main": [[{"node": "Update Status", "type": "main", "index": 0}]]
+    },
+    "Update Status": {
+      "main": [[{"node": "Cleanup Drive", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
